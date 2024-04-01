@@ -6,7 +6,7 @@ const app = express();
 require('dotenv').config();
 
 // Import the models used in these routes - DO NOT MODIFY
-const { Band, Musician } = require('./db/models');
+const { Band, Musician, Instrument } = require('./db/models');
 
 // Express using json - DO NOT MODIFY
 app.use(express.json());
@@ -40,13 +40,16 @@ app.get('/bands-lazy', async (req, res, next) => {
     const payload = [];
     for(let i = 0; i < allBands.length; i++){
         const band = allBands[i];
-        // Your code here 
+        // Your code here
+        const musicians = await band.getMusicians({ order: [ ['firstName'] ] })
+
         const bandData = {
             id: band.id,
             name: band.name,
             createdAt: band.createdAt,
             updatedAt: band.updatedAt,
-            // Your code here 
+            // Your code here
+            musicians: musicians
         };
         payload.push(bandData);
     }
@@ -56,7 +59,21 @@ app.get('/bands-lazy', async (req, res, next) => {
 // STEP 3: Eager loading all bands
 app.get('/bands-eager', async (req, res, next) => {
     const payload = await Band.findAll({
-        // Your code here 
+        // Your code here
+        order: [['name', 'ASC']],
+        include: [{
+            model: Musician, order: [['firstName', 'ASC']]
+        }]
+    });
+    res.json(payload);
+});
+
+app.get('/instruments-eager', async (req, res, next) => {
+    const payload = await Instrument.findAll({
+        // Your code here
+        include: [{
+            model: Musician, order: [['firstName', 'ASC']]
+        }]
     });
     res.json(payload);
 });
